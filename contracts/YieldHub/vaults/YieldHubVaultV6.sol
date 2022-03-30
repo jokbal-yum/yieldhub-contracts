@@ -29,7 +29,8 @@ contract YieldHubVaultV6 is ERC20, Ownable, ReentrancyGuard {
     // The strategy currently in use by the vault.
     IStrategy public strategy;
     // The minimum time it has to pass before a strat candidate can be approved.
-    uint256 public approvalDelay;
+    uint256 public immutable approvalDelay;
+
 
     event NewStratCandidate(address implementation);
     event UpgradeStrat(address implementation);
