@@ -22,7 +22,6 @@ const config: DeploymentConfig = {
     telos: {
       chainId: 40,
       url:'https://mainnet.telos.net/evm',
-      accounts:["1f5b27a4747f47bc08690e4867029101654a4834b0e402b72312fc434f3732c9"],
       gas: 2100000,
       gasPrice: 499809179185
     },
