@@ -17,97 +17,14 @@ const accounts = getPKs();
 const hardhatNetworkAccounts = buildHardhatNetworkAccounts(accounts);
 
 const config: DeploymentConfig = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "telos",
   networks: {
-    hardhat: {
-      // accounts visible to hardhat network used by `hardhat node --fork` (yarn net <chainName>)
-      accounts: hardhatNetworkAccounts,
-    },
-    bsc: {
-      url: "https://bsc-dataseed2.defibit.io/",
-      chainId: 56,
-      accounts,
-    },
-    heco: {
-      url: "https://http-mainnet-node.huobichain.com",
-      chainId: 128,
-      accounts,
-    },
-    avax: {
-      url: "https://api.avax.network/ext/bc/C/rpc",
-      chainId: 43114,
-      accounts,
-    },
-    polygon: {
-      url: "https://polygon-rpc.com/",
-      chainId: 137,
-      accounts,
-    },
-    fantom: {
-      url: "https://rpc.ftm.tools",
-      chainId: 250,
-      accounts,
-    },
-    one: {
-      url: "https://api.s0.t.hmny.io/",
-      chainId: 1666600000,
-      accounts,
-    },
-    arbitrum: {
-      url: "https://arb1.arbitrum.io/rpc",
-      chainId: 42161,
-      accounts,
-    },
-    moonriver: {
-      url: "https://rpc.moonriver.moonbeam.network",
-      chainId: 1285,
-      accounts,
-    },
-    celo: {
-      url: "https://forno.celo.org",
-      chainId: 42220,
-      accounts,
-    },
-    cronos: {
-      // url: "https://evm-cronos.crypto.org",
-      url: "https://rpc.vvs.finance/",
-      chainId: 25,
-      accounts,
-    },
-    localhost: {
-      url: "http://127.0.0.1:8545",
-      timeout: 300000,
-      accounts: "remote",
-    },
-    testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-      chainId: 97,
-      accounts,
-    },
-    kovan: {
-      url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      chainId: 42,
-      accounts,
-    },
-    aurora: {
-      url: "https://mainnet.aurora.dev/Fon6fPMs5rCdJc4mxX4kiSK1vsKdzc3D8k6UF8aruek",
-      chainId: 1313161554,
-      accounts,
-    },
-    fuse: {
-      url: "https://rpc.fuse.io",
-      chainId: 122,
-      accounts,
-    },
-    metis: {
-      url: "https://andromeda.metis.io/?owner=1088",
-      chainId: 1088,
-      accounts,
-    },
-    moonbeam: {
-      url: "https://rpc.api.moonbeam.network",
-      chainId: 1284,
-      accounts,
+    telos: {
+      chainId: 40,
+      url:'https://mainnet.telos.net/evm',
+      accounts:["1f5b27a4747f47bc08690e4867029101654a4834b0e402b72312fc434f3732c9"],
+      gas: 2100000,
+      gasPrice: 499809179185
     },
   },
   etherscan: {
@@ -165,7 +82,7 @@ const config: DeploymentConfig = {
     ],
   },
   paths: {
-    sources: "./contracts/BIFI",
+    sources: "./contracts/YieldHub",
   },
 };
 

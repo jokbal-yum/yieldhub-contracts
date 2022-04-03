@@ -1,52 +1,29 @@
 import hardhat, { ethers, web3 } from "hardhat";
-import { addressBook } from "blockchain-addressbook";
 import { predictAddresses } from "../../utils/predictAddresses";
-import { setCorrectCallFee } from "../../utils/setCorrectCallFee";
-import { setPendingRewardsFunctionName } from "../../utils/setPendingRewardsFunctionName";
-import { verifyContract } from "../../utils/verifyContract";
-import { BeefyChain } from "../../utils/beefyChain";
-
-const registerSubsidy = require("../../utils/registerSubsidy");
-
-const {
-  platforms: {  solarflare, beefyfinance },
-  tokens: {
-    FLARE: { address: FLARE },
-    GLMR: { address: GLMR },
-    UST: { address: UST },
-    LUNA: { address: LUNA },
-    USDT: { address: USDT },
-    USDC: { address: USDC }
-  },
-} = addressBook.moonbeam;
-
-const shouldVerifyOnEtherscan = false;
-
-const want = web3.utils.toChecksumAddress("0x26A2abD79583155EA5d34443b62399879D42748A");
 
 const vaultParams = {
-  mooName: "Moo Solarflare FLARE-GLMR",
-  mooSymbol: "mooSolarflareFLARE-GLMR",
+  name: "omnidex-dmmy-karma",
+  symbol: "yhDmmyKarma",
   delay: 21600,
 };
 
 const strategyParams = {
-  want,
-  poolId: 0,
-  chef: solarflare.masterchef,
-  unirouter: solarflare.router,
-  strategist: "0xb2e4A61D99cA58fB8aaC58Bb2F8A59d63f552fC0", // some address
-  keeper: beefyfinance.keeper,
-  beefyFeeRecipient: beefyfinance.beefyFeeRecipient,
-  outputToNativeRoute: [FLARE, GLMR],
-  outputToLp0Route: [FLARE, GLMR],
-  outputToLp1Route: [FLARE],
+  want:"0x76Bf9208b92C75c94A5723f4a7343C26BB5739B8",
+  poolId: 29,
+  chef: "0x79f5A8BD0d6a00A41EA62cdA426CEf0115117a61",
+  unirouter: "0xF9678db1CE83f6f51E5df348E2Cc842Ca51EfEc1",
+  strategist: "0xeD6d4e2D263334829954D880BF6A366834410713", // some address
+  keeper: "0xeD6d4e2D263334829954D880BF6A366834410713",
+  beefyFeeRecipient: "0xeD6d4e2D263334829954D880BF6A366834410713",
+  outputToNativeRoute: ["0xd2504a02fABd7E546e41aD39597c377cA8B0E1Df", "0xD102cE6A4dB07D247fcc28F366A623Df0938CA9E"],
+  outputToLp0Route: ["0xd2504a02fABd7E546e41aD39597c377cA8B0E1Df", "0xD102cE6A4dB07D247fcc28F366A623Df0938CA9E", "0x2f15F85a6c346C0a2514Af70075259e503E7137B"],
+  outputToLp1Route: ["0xd2504a02fABd7E546e41aD39597c377cA8B0E1Df", "0x730d2Fa7dC7642E041bcE231E85b39e9bF4a6a64"],
  // pendingRewardsFunctionName: "pendingTri", // used for rewardsAvailable(), use correct function name from masterchef
 };
 
 const contractNames = {
-  vault: "BeefyVaultV6",
-  strategy: "StrategySolarbeamV2",
+  vault: "YieldHubVaultV6",
+  strategy: "StrategyTelosOmnidexLP",
 };
 
 async function main() {
@@ -66,14 +43,14 @@ async function main() {
 
   const [deployer] = await ethers.getSigners();
 
-  console.log("Deploying:", vaultParams.mooName);
+  console.log("Deploying:", vaultParams.name);
 
   const predictedAddresses = await predictAddresses({ creator: deployer.address });
 
   const vaultConstructorArguments = [
     predictedAddresses.strategy,
-    vaultParams.mooName,
-    vaultParams.mooSymbol,
+    vaultParams.name,
+    vaultParams.symbol,
     vaultParams.delay,
   ];
   const vault = await Vault.deploy(...vaultConstructorArguments);
@@ -96,7 +73,6 @@ async function main() {
   await strategy.deployed();
 
   // add this info to PR
-  console.log();
   console.log("Vault:", vault.address);
   console.log("Strategy:", strategy.address);
   console.log("Want:", strategyParams.want);
@@ -106,25 +82,8 @@ async function main() {
   console.log("Running post deployment");
 
   const verifyContractsPromises: Promise<any>[] = [];
-  if (shouldVerifyOnEtherscan) {
-    // skip await as this is a long running operation, and you can do other stuff to prepare vault while this finishes
-    verifyContractsPromises.push(
-      verifyContract(vault.address, vaultConstructorArguments),
-      verifyContract(strategy.address, strategyConstructorArguments)
-    );
-  }
- // await setPendingRewardsFunctionName(strategy, strategyParams.pendingRewardsFunctionName);
-  await setCorrectCallFee(strategy, hardhat.network.name as BeefyChain);
-  console.log(`Transfering Vault Owner to ${beefyfinance.vaultOwner}`)
-  await vault.transferOwnership(beefyfinance.vaultOwner);
-  console.log();
 
   await Promise.all(verifyContractsPromises);
-
-  if (hardhat.network.name === "bsc") {
-    await registerSubsidy(vault.address, deployer);
-    await registerSubsidy(strategy.address, deployer);
-  }
 }
 
 main()
