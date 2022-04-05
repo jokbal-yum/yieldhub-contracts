@@ -62,14 +62,14 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
 
         address _strategist,
 
-        address _beefyFeeRecipient,
+        address _yieldhubFeeRecipient,
 
         address[] memory _outputToNativeRoute,
 
         address[] memory _outputToLp0Route,
 
         address[] memory _outputToLp1Route
-    ) public StratManager(_keeper, _strategist, _unirouter, _vault, _beefyFeeRecipient) {
+    ) public StratManager(_keeper, _strategist, _unirouter, _vault, _yieldhubFeeRecipient) {
         want = _want;
         poolId = _poolId;
         chef = _chef;
@@ -171,7 +171,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
         uint256 callFeeAmount = nativeBal.mul(callFee).div(MAX_FEE);
         IERC20(native).safeTransfer(callFeeRecipient, callFeeAmount);
 
-        uint256 yieldHubFeeAmount = nativeBal.mul(yieldHubFee).div(MAX_FEE);
+        uint256 yieldhubFeeAmount = nativeBal.mul(yieldHubFee).div(MAX_FEE);
         IERC20(native).safeTransfer(yieldhubFeeRecipient, yieldHubFeeAmount);
 
         uint256 strategistFee = nativeBal.mul(STRATEGIST_FEE).div(MAX_FEE);
