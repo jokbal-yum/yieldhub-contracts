@@ -15,13 +15,13 @@ abstract contract FeeManager is StratManager {
     uint public withdrawalFee = 10;
 
     uint public callFee = 111;
-    uint public yieldHubFee = MAX_FEE - STRATEGIST_FEE - callFee;
+    uint public yieldhubFee = MAX_FEE - STRATEGIST_FEE - callFee;
 
     function setCallFee(uint256 _fee) public onlyManager {
         require(_fee <= MAX_CALL_FEE, "!cap");
         
         callFee = _fee;
-        yieldHubFee = MAX_FEE - STRATEGIST_FEE - callFee;
+        yieldhubFee = MAX_FEE - STRATEGIST_FEE - callFee;
     }
 
     function setWithdrawalFee(uint256 _fee) public onlyManager {

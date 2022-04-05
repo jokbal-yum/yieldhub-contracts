@@ -173,8 +173,8 @@ contract StrategyTelosZappyLP is StratManager, FeeManager {
         uint256 callFeeAmount = nativeBal.mul(callFee).div(MAX_FEE);
         IERC20(native).safeTransfer(callFeeRecipient, callFeeAmount);
 
-        uint256 yieldhubFeeAmount = nativeBal.mul(yieldHubFee).div(MAX_FEE);
-        IERC20(native).safeTransfer(yieldhubFeeRecipient, yieldHubFeeAmount);
+        uint256 yieldhubFeeAmount = nativeBal.mul(yieldhubFee).div(MAX_FEE);
+        IERC20(native).safeTransfer(yieldhubFeeRecipient, yieldhubFeeAmount);
 
         uint256 strategistFee = nativeBal.mul(STRATEGIST_FEE).div(MAX_FEE);
         IERC20(native).safeTransfer(strategist, strategistFee);
