@@ -210,7 +210,7 @@ contract StrategyTelosZappyLP is StratManager, FeeManager {
     }
 
     function rewardsAvailable() public view returns (uint256) {
-        return IMasterChef(chef).pendingCharm(poolId, address(this));
+        return IMasterChef(chef).pendingZAP(poolId, address(this));
     }
 
     function setHarvestOnDeposit(bool _harvestOnDeposit) external onlyManager {
