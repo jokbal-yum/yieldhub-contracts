@@ -5,13 +5,13 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "../../interfaces/omnidex/IOmnidexRouter01.sol";
-import "../../interfaces/omnidex/IOmnidexPair.sol";
-import "../../interfaces/omnidex/IZenMaster.sol";
+import "../../interfaces/zappy/IUniswapV2Router01.sol";
+import "../../interfaces/zappy/IUniswapV2Pair.sol";
+import "../../interfaces/zappy/IMasterChef.sol";
 import "../Common/StratManager.sol";
 import "../Common/FeeManager.sol";
 
-contract StrategyTelosOmnidexLP is StratManager, FeeManager {
+contract StrategyTelosZappyLP is StratManager, FeeManager {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -80,12 +80,12 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
         outputToNativeRoute = _outputToNativeRoute;
         
         // setup lp routing
-        lpToken0 = IOmnidexPair(want).token0();
+        lpToken0 = IUniswapV2Pair(want).token0();
         require(_outputToLp0Route[0] == output, "first != output");
         require(_outputToLp0Route[_outputToLp0Route.length - 1] == lpToken0, "last != lptoken0");
         outputToLp0Route = _outputToLp0Route;
 
-        lpToken1 = IOmnidexPair(want).token1();
+        lpToken1 = IUniswapV2Pair(want).token1();
         require(_outputToLp1Route[0] == output, "first != output");
         require(_outputToLp1Route[_outputToLp1Route.length - 1] == lpToken1, "last != lptoken1");
         outputToLp1Route = _outputToLp1Route;
@@ -95,6 +95,8 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
             uint idx = _outputToNativeRoute.length - 1 - i;
             nativeToOutputRoute[i] = outputToNativeRoute[idx];
         }
+
+        harvestOnDeposit=true;
         // set allowances to max for all possible approvals
         _giveAllowances();
     }
@@ -102,7 +104,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
     function deposit() public whenNotPaused {
         uint256 wantBal = IERC20(want).balanceOf(address(this));
         if (wantBal > 0) {
-            IZenMaster(chef).deposit(poolId, wantBal);            
+            IMasterChef(chef).deposit(poolId, wantBal);            
             emit Deposit(balanceOf());
         }
     }
@@ -112,7 +114,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
         uint256 wantBal = IERC20(want).balanceOf(address(this));
 
         if (wantBal < _amount) {
-            IZenMaster(chef).withdraw(poolId, _amount.sub(wantBal));
+            IMasterChef(chef).withdraw(poolId, _amount.sub(wantBal));
             wantBal = IERC20(want).balanceOf(address(this));
         }
 
@@ -149,7 +151,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
     }
 
     function _harvest(address callFeeRecipient) internal whenNotPaused {
-        IZenMaster(chef).deposit(poolId, 0);
+        IMasterChef(chef).deposit(poolId, 0);
         uint256 outputBal = IERC20(output).balanceOf(address(this));
         if (outputBal > 0) {
             chargeFees(callFeeRecipient);
@@ -164,7 +166,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
     function chargeFees(address callFeeRecipient) internal {
         uint256 toNative = IERC20(output).balanceOf(address(this)).mul(45).div(1000);
 
-        IOmnidexRouter01(unirouter).swapExactTokensForTokens(toNative, 0, outputToNativeRoute, address(this), now);
+        IUniswapV2Router01(unirouter).swapExactTokensForTokens(toNative, 0, outputToNativeRoute, address(this), now);
 
         uint256 nativeBal = IERC20(native).balanceOf(address(this));
 
@@ -183,17 +185,17 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
         uint256 outputHalf = IERC20(output).balanceOf(address(this)).div(2);
 
         if (lpToken0 != output) {
-            IOmnidexRouter01(unirouter).swapExactTokensForTokens(outputHalf, 0, outputToLp0Route, address(this), now);
+            IUniswapV2Router01(unirouter).swapExactTokensForTokens(outputHalf, 0, outputToLp0Route, address(this), now);
         }
 
         if (lpToken1 != output) {
-            IOmnidexRouter01(unirouter).swapExactTokensForTokens(outputHalf, 0, outputToLp1Route, address(this), now);
+            IUniswapV2Router01(unirouter).swapExactTokensForTokens(outputHalf, 0, outputToLp1Route, address(this), now);
         }
 
         uint256 lp0Bal = IERC20(lpToken0).balanceOf(address(this));
         uint256 lp1Bal = IERC20(lpToken1).balanceOf(address(this));
 
-        IOmnidexRouter01(unirouter).addLiquidity(lpToken0, lpToken1, lp0Bal, lp1Bal, 1, 1, address(this), now);
+        IUniswapV2Router01(unirouter).addLiquidity(lpToken0, lpToken1, lp0Bal, lp1Bal, 1, 1, address(this), now);
     }
 
     function balanceOf() public view returns (uint256) {
@@ -205,12 +207,12 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
     }
 
     function balanceOfPool() public view returns (uint256) {
-        (uint256 _amount, ) = IZenMaster(chef).userInfo(poolId, address(this));	
+        (uint256 _amount, ) = IMasterChef(chef).userInfo(poolId, address(this));	
         return _amount;
     }
 
     function rewardsAvailable() public view returns (uint256) {
-        return IZenMaster(chef).pendingCharm(poolId, address(this));
+        return IMasterChef(chef).pendingZAP(poolId, address(this));
     }
 
     function setHarvestOnDeposit(bool _harvestOnDeposit) external onlyManager {
@@ -226,7 +228,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
     function retireStrat() external {
         require(msg.sender == vault, "!vault");
 
-        IZenMaster(chef).emergencyWithdraw(poolId);
+        IMasterChef(chef).emergencyWithdraw(poolId);
 
         uint256 wantBal = IERC20(want).balanceOf(address(this));
         IERC20(want).transfer(vault, wantBal);
@@ -234,7 +236,7 @@ contract StrategyTelosOmnidexLP is StratManager, FeeManager {
 
     function panic() public onlyManager {
         pause();
-        IZenMaster(chef).emergencyWithdraw(poolId);
+        IMasterChef(chef).emergencyWithdraw(poolId);
     }
 
     function pause() public onlyManager {
